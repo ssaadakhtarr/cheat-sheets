@@ -1,0 +1,2 @@
+To get assembly code from a binary using objdump:
+usage: objdump -D file -M intel  | less

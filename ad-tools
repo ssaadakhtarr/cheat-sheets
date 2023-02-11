@@ -1,0 +1,5 @@
+Setting a new password for user 'sophie' in AD using PS:
+usage: Set-ADAccountPassword sophie -Reset -NewPassword (Read-Host -AsSecureString -Prompt 'New Password') -Verbose
+
+Force a password reset at the next logon
+usage: Set-ADUser -ChangePasswordAtLogon $true -Identity sophie -Verbose

