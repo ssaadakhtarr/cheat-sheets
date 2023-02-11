@@ -1,5 +1,5 @@
 gobuster
-usage: gobuster dir -u http://10.10.95.226 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -o gobuster.txt 
+usage:gobuster dir -u http://10.10.95.226 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -o gobuster.txt 
 
 directory brute-forcing using wfuzz:
 wfuzz -c -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt --hw 15 http://10.10.66.89:8081/FUZZ
